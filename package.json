@@ -1,0 +1,29 @@
+{
+    "author": "ben@robinson2.com",
+    "dependencies": {},
+    "keywords": [],
+    "name": "session-timer",
+    "pebble": {
+        "capabilities": [
+            ""
+        ],
+        "displayName": "Session Timer",
+        "enableMultiJS": true,
+        "messageKeys": [],
+        "projectType": "native",
+        "resources": {
+            "media": []
+        },
+        "sdkVersion": "3",
+        "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk"
+        ],
+        "uuid": "1724c88a-f6b0-48f8-b05b-fd69cf370d50",
+        "watchapp": {
+            "watchface": false
+        }
+    },
+    "version": "1.0.0"
+}
