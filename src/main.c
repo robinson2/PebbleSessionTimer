@@ -49,7 +49,6 @@ void menu_draw_row_callback(GContext *ctx, const Layer *cell_layer, MenuIndex *c
 		strftime(cell_title,32, "%m/%e %I:%M:%S %p", ticktime);
 	}
 
-
 	// generate the subtitle (elapsed time since previous timestamp)
 	char cell_subtitle[32] = "Initial";
 	int diff;
@@ -58,7 +57,7 @@ void menu_draw_row_callback(GContext *ctx, const Layer *cell_layer, MenuIndex *c
 	int s;
 	if(itemnr > 0){
 		diff = timestamp[itemnr] - timestamp[itemnr - 1];
-		h = (diff / 3600) % 24; m = (diff / 60) % 60; s = diff % 60;
+		s = diff % 60; m = (diff / 60) % 60; h = (diff - s - (m * 60)) / 3600;
 		snprintf(cell_subtitle,32,"%dh %dm %ds     [%d/%d]",h,m,s,itemnr+1,MAX_TIMESTAMPS);	
 	}
 	
@@ -143,7 +142,6 @@ void write_persist_values() {
 void init() {
 	// read values 
 	read_persist_values();
-	// OLD – create new timestamp on start: create_timestamp();
 	// create the window
 	window = window_create();
 	window_set_window_handlers(window, (WindowHandlers) {
