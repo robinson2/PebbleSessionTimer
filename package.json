@@ -1,5 +1,5 @@
 {
-    "author": "ben@robinson2.com",
+    "author": "robinson2",
     "dependencies": {},
     "keywords": [],
     "name": "session-timer",
@@ -12,7 +12,15 @@
         "messageKeys": [],
         "projectType": "native",
         "resources": {
-            "media": []
+            "media": [
+                {
+                    "file": "images/menu.png",
+                    "menuIcon": true,
+                    "name": "ico_menu",
+                    "targetPlatforms": null,
+                    "type": "png"
+                }
+            ]
         },
         "sdkVersion": "3",
         "targetPlatforms": [
@@ -25,5 +33,5 @@
             "watchface": false
         }
     },
-    "version": "1.0.0"
+    "version": "1.2.0"
 }

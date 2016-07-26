@@ -3,7 +3,7 @@
 Window *window;
 MenuLayer *menu_layer;
 
-#define MAX_TIMESTAMPS 20
+#define MAX_TIMESTAMPS 50
 
 uint32_t num_items_storage_key = 0;
 uint32_t timestamp_storage_key = 1;
@@ -37,20 +37,17 @@ void reset_timestamps() {
 
 
 void menu_draw_row_callback(GContext *ctx, const Layer *cell_layer, MenuIndex *cell_index, void *context) {
-	// list items in reverse order
+	// get itemnr (list items in reverse order)
 	int itemnr = num_items - cell_index->row - 1;
-	
+
 	// generate the title
 	char cell_title[32];
 	struct tm* ticktime = localtime(&timestamp[itemnr]);
-	if(clock_is_24h_style() == true) {
-		strftime(cell_title,32, "%e.%m. %H:%M:%S", ticktime);
-	} else {
-		strftime(cell_title,32, "%m/%e %I:%M:%S %p", ticktime);
-	}
+	if(clock_is_24h_style() == true) strftime(cell_title,32, "%e.%m. %H:%M:%S", ticktime);
+	else strftime(cell_title,32, "%m/%e %I:%M:%S %p", ticktime);
 
 	// generate the subtitle (elapsed time since previous timestamp)
-	char cell_subtitle[32] = "Initial";
+	char cell_subtitle[32];
 	int diff;
 	int h;
 	int m;
@@ -58,15 +55,47 @@ void menu_draw_row_callback(GContext *ctx, const Layer *cell_layer, MenuIndex *c
 	if(itemnr > 0){
 		diff = timestamp[itemnr] - timestamp[itemnr - 1];
 		s = diff % 60; m = (diff / 60) % 60; h = (diff - s - (m * 60)) / 3600;
-		snprintf(cell_subtitle,32,"%dh %dm %ds     [%d/%d]",h,m,s,itemnr+1,MAX_TIMESTAMPS);	
+
+		if(h > 0) snprintf(cell_subtitle,32,"%dh %dm %ds",h,m,s);	
+		else{
+			if(m > 0) snprintf(cell_subtitle,32,"%dm %ds",m,s);	
+			else snprintf(cell_subtitle,32,"%ds",s);	
+		}
 	}
-	
+
 	// draw the row
 	menu_cell_basic_draw(ctx, cell_layer, cell_title, cell_subtitle, NULL);
 }
 
 
 uint16_t menu_num_rows_callback(MenuLayer *menu_layer, uint16_t section_index, void *callback_context) { return num_items; }
+
+
+static int16_t menu_get_header_height_callback(MenuLayer *menu_layer, uint16_t section_index, void *data) {
+  // This is a define provided in pebble.h that you may use for the default height
+  return MENU_CELL_BASIC_HEADER_HEIGHT;
+}
+
+
+static void menu_draw_header_callback(GContext* ctx, const Layer *cell_layer, uint16_t section_index, void *data) {
+	char header_title[32];
+	time_t now = time(NULL);
+	int diff;
+	int h;
+	int m;
+	int s;
+	
+	diff = now - timestamp[num_items - 1];
+	s = diff % 60; m = (diff / 60) % 60; h = (diff - s - (m * 60)) / 3600;
+	
+	if(h > 0) snprintf(header_title,32,"  %d/%d  —  %dh %dm %ds",num_items,MAX_TIMESTAMPS,h,m,s);	
+	else{
+		if(m > 0) snprintf(header_title,32,"  %d/%d  —  %dm %ds",num_items,MAX_TIMESTAMPS,m,s);	
+		else snprintf(header_title,32,"  %d/%d  —  %ds",num_items,MAX_TIMESTAMPS,s);		
+	}
+	
+	menu_cell_basic_header_draw(ctx, cell_layer, header_title);
+}
 
 
 void menu_select_click_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context) {
@@ -83,8 +112,11 @@ void menu_select_long_click_callback(MenuLayer *menu_layer, MenuIndex *cell_inde
 	// reload menu
 	menu_layer_reload_data(menu_layer);
 	// vibrate
-	vibes_short_pulse();
+	vibes_double_pulse();
 }
+
+
+static void tick_handler(struct tm *tick_time, TimeUnits changed) { menu_layer_reload_data(menu_layer); }
 
 
 void window_load(Window *window) {
@@ -105,13 +137,18 @@ void window_load(Window *window) {
 	menu_layer_set_callbacks(menu_layer, NULL, (MenuLayerCallbacks) {
 		.get_num_rows = menu_num_rows_callback,
 		.draw_row = menu_draw_row_callback,
+		.get_header_height = menu_get_header_height_callback,
+		.draw_header = menu_draw_header_callback,
 		.select_click = menu_select_click_callback,
 		.select_long_click = menu_select_long_click_callback,
 	});
 	
 	// Add to Window
 	layer_add_child(window_layer, menu_layer_get_layer(menu_layer));
+	
+	tick_timer_service_subscribe(SECOND_UNIT, tick_handler);
 }
+
 
 void window_unload(Window *window) {
 	menu_layer_destroy(menu_layer);
