@@ -43,8 +43,7 @@ void menu_draw_row_callback(GContext *ctx, const Layer *cell_layer, MenuIndex *c
 	// generate the title
 	char cell_title[32];
 	struct tm* ticktime = localtime(&timestamp[itemnr]);
-	if(clock_is_24h_style() == true) strftime(cell_title,32, "%e.%m. %H:%M:%S", ticktime);
-	else strftime(cell_title,32, "%m/%e %I:%M:%S %p", ticktime);
+	strftime(cell_title,32, "%m-%e  %H:%M:%S", ticktime);
 
 	// generate the subtitle (elapsed time since previous timestamp)
 	char cell_subtitle[32];
